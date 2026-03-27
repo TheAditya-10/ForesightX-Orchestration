@@ -3,7 +3,7 @@ import math
 import httpx
 from pydantic import BaseModel, Field
 
-from shared import request_json
+from shared import HTTPRequestError, request_json
 
 from app.services.sentiment_service import score_headlines
 from app.utils.config import OrchestrationSettings
@@ -100,14 +100,31 @@ async def predict_pattern(
     logger,
 ) -> dict:
     validated = TickerInput(ticker=ticker.strip().upper())
-    return await request_json(
-        client=client,
-        method="POST",
-        url=f"{settings.pattern_service_url.rstrip('/')}/predict",
-        json={"ticker": validated.ticker},
-        retries=settings.max_retries,
-        logger=logger,
-    )
+    try:
+        return await request_json(
+            client=client,
+            method="POST",
+            url=f"{settings.pattern_service_url.rstrip('/')}/predict",
+            json={"ticker": validated.ticker},
+            retries=settings.max_retries,
+            logger=logger,
+        )
+    except HTTPRequestError as exc:
+        error_message = str(exc).lower()
+        if "404" in error_message:
+            logger.warning(
+                "Pattern prediction unavailable for ticker; using neutral fallback",
+                extra={"ticker": validated.ticker},
+            )
+            return {
+                "symbol": validated.ticker,
+                "prediction": "neutral",
+                "confidence": 0.5,
+                "predicted_return": 0.0,
+                "latest_close": 0.0,
+                "predicted_next_close": 0.0,
+            }
+        raise
 
 
 def suggest_trade(signals: dict, portfolio: dict) -> dict:

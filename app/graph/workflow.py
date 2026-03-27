@@ -171,16 +171,23 @@ def build_workflow(runtime):
             state,
             "response_node",
         )
+        generated_at = datetime.now(timezone.utc).isoformat()
         response = {
             "action": state["decision"]["action"],
             "confidence": state["decision"]["confidence"],
             "reason": state["decision"]["reason"],
             "trace": {
                 **trace,
-                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "generated_at": generated_at,
             },
         }
-        trace["intermediate_data"]["final_response"] = response
+        # Persist a trace-free snapshot to avoid recursive JSON structures.
+        trace["intermediate_data"]["final_response"] = {
+            "action": response["action"],
+            "confidence": response["confidence"],
+            "reason": response["reason"],
+            "generated_at": generated_at,
+        }
         return {"response": response, "trace": trace}
 
     graph = StateGraph(WorkflowState)

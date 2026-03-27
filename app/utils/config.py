@@ -1,8 +1,9 @@
 from pathlib import Path
 
+from pydantic import field_validator
 from pydantic_settings import SettingsConfigDict
 
-from shared import BaseServiceSettings
+from shared import BaseServiceSettings, normalize_postgres_async_url
 
 
 class OrchestrationSettings(BaseServiceSettings):
@@ -25,3 +26,8 @@ class OrchestrationSettings(BaseServiceSettings):
         extra="ignore",
         case_sensitive=False,
     )
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value: str) -> str:
+        return normalize_postgres_async_url(value)
