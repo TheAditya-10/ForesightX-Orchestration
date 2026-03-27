@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from shared import ServiceHealth, build_async_client, configure_logging, get_logger
 
+from app.db.session import check_database_connection, close_database, get_session_factory
 from app.routers.analyze import router as analyze_router
 from app.services.runtime import OrchestrationRuntime
 from app.utils.config import OrchestrationSettings
@@ -21,18 +22,23 @@ async def lifespan(_: FastAPI):
     settings = get_settings()
     configure_logging(settings.service_name, settings.log_level)
     logger = get_logger(settings.service_name, "startup")
+    session_factory = get_session_factory(settings.database_url)
+    await check_database_connection(settings.database_url)
     runtime = OrchestrationRuntime(
         settings=settings,
         http_client=build_async_client(timeout=settings.request_timeout_seconds),
+        session_factory=session_factory,
     )
     await runtime.start()
     app.state.runtime = runtime
     app.state.settings = settings
+    app.state.session_factory = session_factory
     logger.info("Orchestration service startup complete")
     try:
         yield
     finally:
         await runtime.close()
+        await close_database()
         logger.info("Orchestration service shutdown complete")
 
 

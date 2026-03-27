@@ -1,9 +1,14 @@
+from pathlib import Path
+
+from pydantic_settings import SettingsConfigDict
+
 from shared import BaseServiceSettings
 
 
 class OrchestrationSettings(BaseServiceSettings):
     service_name: str = "foresightx-orchestration"
     port: int = 8000
+    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/foresightx_orchestration"
     data_service_url: str = "http://data:8001"
     profile_service_url: str = "http://profile:8002"
     pattern_service_url: str = "http://pattern:8003"
@@ -13,3 +18,10 @@ class OrchestrationSettings(BaseServiceSettings):
     high_volatility_threshold: float = 0.035
     gemini_api_key: str = ""
     gemini_model: str = "gemini-1.5-flash"
+
+    model_config = SettingsConfigDict(
+        env_file=Path(__file__).resolve().parents[2] / ".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=False,
+    )
