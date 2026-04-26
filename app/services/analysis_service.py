@@ -14,8 +14,20 @@ class SignalAnalysisService:
         macd_signal = float(market_data["indicators"]["macd_signal"])
         sentiment_score = float(market_data["sentiment"]["sentiment_score"])
         sentiment_confidence = float(market_data["sentiment"]["confidence"])
-        pattern_prediction = market_data["pattern"]["prediction"]
-        pattern_confidence = float(market_data["pattern"]["confidence"])
+        pattern_payload = market_data["pattern"]
+        pattern_confidence = float(pattern_payload.get("confidence", 0.5))
+        pattern_prediction = str(pattern_payload.get("prediction", "neutral")).lower()
+        if "predictions" in pattern_payload and isinstance(pattern_payload["predictions"], list):
+            predictions = pattern_payload["predictions"]
+            if len(predictions) >= 2:
+                start = float(predictions[0])
+                end = float(predictions[-1])
+                if end > start:
+                    pattern_prediction = "bullish"
+                elif end < start:
+                    pattern_prediction = "bearish"
+                else:
+                    pattern_prediction = "neutral"
 
         rsi_bias = (50 - rsi) / 50
         macd_bias = math.tanh(macd / max(price * 0.01, 0.01))
@@ -39,7 +51,7 @@ class SignalAnalysisService:
         reasons = [
             f"RSI is {rsi:.2f}, which maps to a momentum bias of {rsi_bias:.2f}.",
             f"MACD spread versus signal is {macd - macd_signal:.4f}, indicating trend strength of {crossover_bias:.2f}.",
-            f"Pattern model predicts {pattern_prediction} with {pattern_confidence:.2f} confidence.",
+            f"Pattern model indicates {pattern_prediction} with {pattern_confidence:.2f} confidence.",
             f"Headline sentiment scored {sentiment_score:.2f} with {sentiment_confidence:.2f} confidence.",
         ]
         self.logger.info(

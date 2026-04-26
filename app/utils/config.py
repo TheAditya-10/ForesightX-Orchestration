@@ -18,7 +18,7 @@ class OrchestrationSettings(BaseServiceSettings):
     max_portfolio_exposure: float = 0.20
     high_volatility_threshold: float = 0.035
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-2.5-flash"
 
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parents[2] / ".env",
