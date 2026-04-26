@@ -73,7 +73,8 @@ Required JSON schema:
 {{
   "action": "BUY | SELL | HOLD",
   "confidence": 0.0,
-  "reason": ["string", "string"]
+  "reason": ["string", "string"],
+  "recommendation": "single concise advisory line for the trader"
 }}
 """.strip()
 

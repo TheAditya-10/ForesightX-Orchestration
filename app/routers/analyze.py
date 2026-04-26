@@ -1,7 +1,13 @@
 from fastapi import APIRouter, Depends, Query, Request
 
 from app.controllers.analyze_controller import AnalyzeController
-from app.schemas.analyze import AnalysisJobListResponse, AnalysisJobResponse, AnalyzeRequest, AnalyzeResponse
+from app.schemas.analyze import (
+    AnalysisJobListResponse,
+    AnalysisJobResponse,
+    AnalyzeRequest,
+    AnalyzeResponse,
+    InstrumentSearchResponse,
+)
 
 
 router = APIRouter(tags=["analysis"])
@@ -34,3 +40,12 @@ async def list_analysis_jobs(
     controller: AnalyzeController = Depends(get_controller),
 ) -> AnalysisJobListResponse:
     return await controller.list_jobs(user_id=user_id, limit=limit)
+
+
+@router.get("/instruments/search", response_model=InstrumentSearchResponse)
+async def search_instruments(
+    q: str = Query(..., min_length=1, max_length=128),
+    limit: int = Query(default=15, ge=1, le=30),
+    controller: AnalyzeController = Depends(get_controller),
+) -> InstrumentSearchResponse:
+    return await controller.search_instruments(query=q, limit=limit)

@@ -9,12 +9,13 @@ This is the decision engine of the platform.
 - combine and normalize signals
 - use Gemini for structured decisions
 - apply deterministic risk checks
-- return explainable responses with trace data
+- return explainable responses with trace data and a concise recommendation line
 - persist analysis jobs and ordered workflow events in its own database
 
 ## API
 
 - `POST /analyze`
+- `GET /instruments/search?q=tata&limit=15`
 - `GET /analysis/jobs`
 - `GET /analysis/jobs/{job_id}`
 - `GET /health`

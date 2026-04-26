@@ -12,6 +12,7 @@ class RiskManagementService:
 
     def apply(self, ticker: str, decision: dict, analysis: dict, portfolio: dict, price: dict) -> dict:
         adjusted = deepcopy(decision)
+        original_action = adjusted["action"]
         reasons = list(adjusted["reason"])
         holdings = {item["ticker"]: item for item in portfolio["holdings"]}
         current_position_value = float(holdings.get(ticker, {}).get("current_value", 0.0))
@@ -48,6 +49,13 @@ class RiskManagementService:
 
         adjusted["confidence"] = round(float(adjusted["confidence"]), 2)
         adjusted["reason"] = reasons
+        if adjusted["action"] != original_action:
+            if adjusted["action"] == "HOLD":
+                adjusted["recommendation"] = "Risk controls override the directional signal; hold this position for now."
+            elif adjusted["action"] == "BUY":
+                adjusted["recommendation"] = "Risk checks permit accumulation; consider a staged buy."
+            else:
+                adjusted["recommendation"] = "Risk checks favor de-risking; consider reducing exposure."
         adjusted["risk_summary"] = {
             "current_exposure": round(current_exposure, 4),
             "volatility_proxy": analysis["volatility_proxy"],

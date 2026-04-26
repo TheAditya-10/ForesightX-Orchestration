@@ -11,6 +11,7 @@ from app.schemas.analyze import AnalysisJobEventResponse, AnalysisJobResponse, A
 from app.services.analysis_service import SignalAnalysisService
 from app.services.decision_service import GeminiDecisionService
 from app.services.risk_service import RiskManagementService
+from app.tools.service_tools import search_instruments
 from app.utils.config import OrchestrationSettings
 from shared import get_logger
 
@@ -100,6 +101,15 @@ class OrchestrationRuntime:
             result = await session.execute(query)
             jobs = result.scalars().unique().all()
             return [self._serialize_job(job) for job in jobs]
+
+    async def search_instruments(self, query: str, limit: int = 15) -> dict:
+        return await search_instruments(
+            query=query,
+            limit=limit,
+            client=self.http_client,
+            settings=self.settings,
+            logger=self.logger,
+        )
 
     def _build_job_events(self, job: AnalysisJob, trace: dict) -> list[AnalysisJobEvent]:
         events: list[AnalysisJobEvent] = []

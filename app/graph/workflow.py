@@ -176,6 +176,7 @@ def build_workflow(runtime):
             "action": state["decision"]["action"],
             "confidence": state["decision"]["confidence"],
             "reason": state["decision"]["reason"],
+            "recommendation": state["decision"]["recommendation"],
             "trace": {
                 **trace,
                 "generated_at": generated_at,
@@ -186,6 +187,7 @@ def build_workflow(runtime):
             "action": response["action"],
             "confidence": response["confidence"],
             "reason": response["reason"],
+            "recommendation": response["recommendation"],
             "generated_at": generated_at,
         }
         return {"response": response, "trace": trace}

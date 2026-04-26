@@ -127,6 +127,27 @@ async def predict_pattern(
         raise
 
 
+async def search_instruments(
+    query: str,
+    *,
+    client: httpx.AsyncClient,
+    settings: OrchestrationSettings,
+    logger,
+    limit: int = 15,
+) -> dict:
+    clean_query = query.strip()
+    if not clean_query:
+        return {"query": "", "results": []}
+    return await request_json(
+        client=client,
+        method="GET",
+        url=f"{settings.data_service_url.rstrip('/')}/instruments/search",
+        params={"q": clean_query, "limit": limit},
+        retries=settings.max_retries,
+        logger=logger,
+    )
+
+
 def suggest_trade(signals: dict, portfolio: dict) -> dict:
     validated = TradeSuggestionInput(signals=signals, portfolio=portfolio)
     composite = float(validated.signals["composite_score"])
@@ -152,8 +173,15 @@ def suggest_trade(signals: dict, portfolio: dict) -> dict:
     if math.isclose(composite, 0.0, abs_tol=0.05):
         rationale.append("Signals are too balanced to justify a directional trade.")
 
+    recommendation = "Hold for now until signals align."
+    if action == "BUY":
+        recommendation = "Bias is positive; consider a staged buy with disciplined position sizing."
+    elif action == "SELL":
+        recommendation = "Downside pressure is elevated; consider trimming or exiting to protect capital."
+
     return {
         "action": action,
         "confidence": round(confidence, 2),
         "reason": rationale,
+        "recommendation": recommendation,
     }

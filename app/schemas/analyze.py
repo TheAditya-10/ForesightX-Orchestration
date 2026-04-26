@@ -19,6 +19,7 @@ class DecisionPayload(BaseModel):
     action: Literal["BUY", "SELL", "HOLD"]
     confidence: float = Field(..., ge=0, le=1)
     reason: list[str] = Field(..., min_length=1)
+    recommendation: str = Field(..., min_length=5, max_length=240)
 
 
 class TracePayload(BaseModel):
@@ -33,6 +34,7 @@ class AnalyzeResponse(BaseModel):
     action: Literal["BUY", "SELL", "HOLD"]
     confidence: float = Field(..., ge=0, le=1)
     reason: list[str]
+    recommendation: str
     trace: TracePayload
 
 
@@ -61,3 +63,15 @@ class AnalysisJobResponse(BaseModel):
 
 class AnalysisJobListResponse(BaseModel):
     jobs: list[AnalysisJobResponse]
+
+
+class InstrumentSearchItem(BaseModel):
+    ticker: str
+    name: str | None = None
+    exchange: str | None = None
+    score: float = Field(default=0.0, ge=0)
+
+
+class InstrumentSearchResponse(BaseModel):
+    query: str
+    results: list[InstrumentSearchItem]

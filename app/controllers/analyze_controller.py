@@ -1,6 +1,12 @@
 from fastapi import HTTPException, status
 
-from app.schemas.analyze import AnalysisJobListResponse, AnalysisJobResponse, AnalyzeRequest, AnalyzeResponse
+from app.schemas.analyze import (
+    AnalysisJobListResponse,
+    AnalysisJobResponse,
+    AnalyzeRequest,
+    AnalyzeResponse,
+    InstrumentSearchResponse,
+)
 from app.services.runtime import OrchestrationRuntime
 
 
@@ -25,5 +31,12 @@ class AnalyzeController:
         try:
             jobs = await self.runtime.list_jobs(user_id=user_id, limit=limit)
             return AnalysisJobListResponse(jobs=jobs)
+        except Exception as exc:
+            raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
+
+    async def search_instruments(self, query: str, limit: int) -> InstrumentSearchResponse:
+        try:
+            payload = await self.runtime.search_instruments(query=query, limit=limit)
+            return InstrumentSearchResponse.model_validate(payload)
         except Exception as exc:
             raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(exc)) from exc
