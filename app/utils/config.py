@@ -9,7 +9,7 @@ from shared import BaseServiceSettings, normalize_postgres_async_url
 class OrchestrationSettings(BaseServiceSettings):
     service_name: str = "foresightx-orchestration"
     port: int = 8000
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/foresightx_orchestration"
+    database_url: str = "postgresql://postgres:postgres@localhost:5432/foresightx_orchestration"
     data_service_url: str = "http://data:8001"
     profile_service_url: str = "http://profile:8002"
     pattern_service_url: str = "http://pattern:8003"
