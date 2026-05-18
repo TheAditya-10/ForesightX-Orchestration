@@ -1,19 +1,31 @@
-FROM python:3.12-slim
+FROM python:3.12-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PIP_NO_CACHE_DIR=1
 
-WORKDIR /app/ForesightX-orchestration
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY ForesightX-orchestration/requirements.txt ./requirements.txt
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-COPY ForesightX-orchestration /app/ForesightX-orchestration
+FROM python:3.12-slim AS runner
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
+
+WORKDIR /app/ForesightX-Orchestration
+
+COPY --from=builder /install /usr/local
+COPY ForesightX-Orchestration /app/ForesightX-Orchestration
 
 RUN useradd --create-home --shell /usr/sbin/nologin appuser && \
-    chown -R appuser:appuser /app/ForesightX-orchestration
+    chown -R appuser:appuser /app/ForesightX-Orchestration
 USER appuser
 
 EXPOSE 8000
